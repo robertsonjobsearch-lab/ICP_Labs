@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, pool
 
 from app import models  # noqa: F401  (registers models on Base.metadata)
 from app.db import Base
+from app.config import normalize_database_url
 
 config = context.config
 
@@ -19,7 +20,7 @@ def _database_url() -> str:
     url = config.attributes.get("database_url") or os.environ.get("DATABASE_URL")
     if not url:
         raise RuntimeError("DATABASE_URL is not set")
-    return url
+    return normalize_database_url(url)
 
 
 def run_migrations_offline() -> None:
@@ -47,3 +48,4 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+

@@ -1,8 +1,16 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def normalize_database_url(value: str) -> str:
+    # Render supplies a standard PostgreSQL URL; this app installs psycopg 3.
+    for prefix in ("postgres://", "postgresql://"):
+        if value.startswith(prefix):
+            return "postgresql+psycopg://" + value[len(prefix):]
+    return value
 
 
 class Settings(BaseSettings):
@@ -10,6 +18,22 @@ class Settings(BaseSettings):
 
     app_env: Literal["development", "production"] = "development"
     database_url: str
+
+    @field_validator("database_url")
+    @classmethod
+    def _use_psycopg_driver(cls, value: str) -> str:
+        return normalize_database_url(value)
+    # Optional for the original stack; required by the Sites backend overlay.
+    sites_proxy_secret: SecretStr | None = None
+
+    @field_validator("sites_proxy_secret")
+    @classmethod
+    def _validate_proxy_secret(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is not None:
+            secret = value.get_secret_value()
+            if len(secret) < 32 or "\r" in secret or "\n" in secret:
+                raise ValueError("SITES_PROXY_SECRET must contain at least 32 characters and no newlines")
+        return value
 
     # Browser origins allowed to call the API. Also used as the trusted-origin
     # list for state-changing requests (CSRF defense).
@@ -71,3 +95,4 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()  # type: ignore[call-arg]
+

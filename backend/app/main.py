@@ -1,4 +1,5 @@
 import logging
+import hmac
 from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request, Response
@@ -51,6 +52,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def security_middleware(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
+        if request.url.path.startswith("/api/") and settings.sites_proxy_secret is not None:
+            supplied = request.headers.get("x-icp-sites-key", "")
+            expected = settings.sites_proxy_secret.get_secret_value()
+            if not hmac.compare_digest(supplied.encode(), expected.encode()):
+                return JSONResponse(status_code=403, content={"detail": "Access denied"},
+                                    headers={"Cache-Control": "no-store"})
         # Reject state-changing requests sent by browsers from untrusted sites.
         origin = request.headers.get("origin")
         if request.method not in SAFE_METHODS and origin and origin.rstrip("/") not in trusted_origins:
@@ -81,3 +88,4 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 
 app = create_app()
+

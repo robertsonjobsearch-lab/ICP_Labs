@@ -1,0 +1,22 @@
+name: Sites backend checks
+on:
+  push:
+    branches: [sites-backend-test]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql+psycopg://unused:unused@127.0.0.1:1/unused_test
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q tests/test_sites_proxy.py tests/test_config.py
