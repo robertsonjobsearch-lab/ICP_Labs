@@ -34,10 +34,36 @@ email, phone, full surname, city, employee count, and other absent fields stay n
 Records are labeled `Apollo.io search preview (contact details not revealed)` and
 `is_demo=false`. Saving/exporting previews uses the existing application endpoints.
 
-No enrichment, automatic reveal, webhook, sequence, or outreach calls are made.
-Apollo currently documents People API Search at zero credits; access and limits
-depend on the Apollo account and selected key permissions. Contact enrichment is
-a separate future feature requiring an explicit user action and usage controls.
+People API Search uses zero credits. Contact reveal is a separate explicit action
+in the Sites Dashboard and Saved Leads: select 1-5 Apollo prospects, click Reveal
+contact details, approve the credit notice, then submit. Available details are
+automatically saved for the signed-in user. Name/work-email enrichment can use up
+to 1 credit per person; the optional phone lookup can use up to 9 total per person.
+Personal emails, waterfall enrichment, sequences and outreach are excluded.
+
+The backend requires API key scopes `api/v1/people/match` and
+`api/v1/webhook_result/show` alongside search. Phone delivery uses `poll_only=true`
+and an authenticated, user-owned Check status action; no public webhook is exposed.
+Polling respects Apollo's retry delay and does not make another paid request.
+
+Persistent audit reservations serialize credit usage across backend workers and
+cache requests by user, Apollo ID and reveal mode. Repeated clicks reuse that job.
+No contact details or credentials are stored in audit events; available contact
+values are stored in the user's Saved Leads. Network failures with uncertain
+outcomes never automatically repeat a paid call. Rejected requests can be retried
+explicitly after correcting key permissions or limits.
+
+Conservative daily budgets reserve the maximum possible credits before submitting:
+`APOLLO_USER_DAILY_CREDIT_BUDGET=25` per user and
+`APOLLO_DAILY_CREDIT_BUDGET=100` across the app by default, resetting at midnight UTC.
+Set either to zero to disable new enrichment. Reservations may exceed actual Apollo
+usage (for example, no email/phone found), which is intentional. Apollo remains the
+source of truth for billing. Sign-in must be enabled to spend credits.
+
+Endpoints: `POST /api/enrichment` accepts `person_id`, `include_phone` and
+`acknowledge_credits=true`; `POST /api/enrichment/{job_id}/refresh` checks a job
+owned by the caller. Both enforce authentication and CSRF. Results update existing
+saved previews without erasing previously returned fields.
 
 The adapter has a 15-second request timeout, bounded response size, no redirects
 or automatic retries, and safe errors for authentication, rate limits, validation,
