@@ -41,7 +41,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.session_factory = make_session_factory(engine)
     app.state.limiter = RateLimiter()
-    app.state.provider = build_provider(settings.resolved_contact_provider)
+    app.state.provider = build_provider(
+        settings.resolved_contact_provider, apollo_api_key=settings.apollo_api_key,
+    )
 
     if not settings.auth_required:
         logger.warning("AUTH_REQUIRED is false: sign-in is off and every visitor has access to all data")

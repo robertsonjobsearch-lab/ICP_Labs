@@ -47,6 +47,7 @@ class Settings(BaseSettings):
 
     # Must be set explicitly in production. Defaults to "mock" in development.
     contact_provider: str | None = None
+    apollo_api_key: SecretStr | None = None
 
     login_rate_limit_per_minute: int = Field(default=5, ge=1, le=1000)
     search_rate_limit_per_minute: int = Field(default=20, ge=1, le=1000)

@@ -1,4 +1,5 @@
 from fastapi import Request
+from pydantic import SecretStr
 
 from app.providers.base import (
     ProspectPage,
@@ -24,11 +25,12 @@ __all__ = [
 ]
 
 
-def build_provider(name: str) -> ProspectProvider:
+def build_provider(name: str, *, apollo_api_key: SecretStr | None = None) -> ProspectProvider:
     if name == "mock":
         return MockProvider()
-    # Real providers (e.g. Apollo.io) are registered here once implemented and
-    # tested; see docs/PROVIDERS.md.
+    if name == "apollo":
+        from app.providers.apollo import ApolloProvider
+        return ApolloProvider(apollo_api_key)
     raise ProviderNotConfiguredError(f"Unknown contact provider '{name}'")
 
 

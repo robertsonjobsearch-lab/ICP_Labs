@@ -146,4 +146,4 @@ def test_provider_errors_are_reported_safely(member_client: TestClient, app: Fas
 
 def test_unknown_provider_fails_at_startup():
     with pytest.raises(ProviderNotConfiguredError):
-        build_provider("apollo")
+        build_provider("not-a-provider")

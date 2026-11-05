@@ -4,9 +4,9 @@ Internal B2B prospecting tool for authorized team members. Define an ideal custo
 search for matching companies and decision-makers, review results, save leads, revisit past
 searches, and export to CSV.
 
-**Current data source: demonstration data only.** Searches use a clearly labeled mock provider.
-Every mock result shows a **DEMO** badge. Those records are fictional demonstration prospects,
-not verified real leads. No real contact-data provider is connected; see
+**Data source:** `CONTACT_PROVIDER=mock` uses clearly labeled fictional demonstration data.
+`CONTACT_PROVIDER=apollo` with `APOLLO_API_KEY` uses Apollo search previews. Search
+never reveals email or phone details; see
 [docs/PROVIDERS.md](docs/PROVIDERS.md).
 
 ## Architecture

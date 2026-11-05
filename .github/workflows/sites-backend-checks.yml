@@ -1,7 +1,7 @@
 name: Sites backend checks
 on:
   push:
-    branches: [sites-backend-test]
+    branches: [sites-backend-test, apollo-integration]
   workflow_dispatch:
 permissions:
   contents: read
